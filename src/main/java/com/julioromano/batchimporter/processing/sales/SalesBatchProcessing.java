@@ -125,6 +125,10 @@ public class SalesBatchProcessing implements BatchProcessing {
                 Salesman salesman = salesmanConverter.convert(parts);
 
                 result.salesmanQty++;
+
+                if (!result.salesBySalesman.containsKey(salesman.getName())) {
+                    result.salesBySalesman.put(salesman.getName(), BigDecimal.ZERO);
+                }
             } else if (CUSTOMER.equals(parts[0])) {
                 SalesDataConverter<Customer> customerConverter = new CustomerConverter();
                 Customer customer = customerConverter.convert(parts);
