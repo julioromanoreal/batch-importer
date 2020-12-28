@@ -2,7 +2,21 @@
 
 Program to read text files from a specific directory, analyze the files and produce a report with specific information.
 
-To run it, just execute the Main class, inside `src/main/java/com/julioromano/batchimporter`
+The solution requires JRE 15 and Maven.
+
+To run it one should first build the project using Maven using the command
+
+```
+mvn package
+```
+
+And then execute the Main class, inside `src/main/java/com/julioromano/batchimporter`
+
+To run the tests one can use the command
+
+```
+mvn test
+```
 
 To configure it, use the file `src/main/java/resources/application.properties`, replacing the following properties:
 * `fileDelimiter`: The character that delimits different information in the input file
