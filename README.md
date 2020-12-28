@@ -20,6 +20,7 @@ mvn test
 
 To configure it, use the file `src/main/java/resources/application.properties`, replacing the following properties:
 * `fileDelimiter`: The character that delimits different information in the input file
+* `timeToStartProcess`: Time to wait before starting the process when a new file is detected. This is to make it possible for many huge files to be copied and processed together rather than starting the process right away, while other files are still being copied.
 * `salesDataInDir`: Directory to be watched in order to get new input files to be processed
 * `salesDataOutDir`: Directory where the output file will be saved
 

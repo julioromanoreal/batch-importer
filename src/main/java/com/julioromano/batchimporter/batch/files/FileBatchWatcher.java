@@ -5,6 +5,7 @@ import com.julioromano.batchimporter.batch.files.utils.FileUtils;
 import com.julioromano.batchimporter.processing.BatchProcessing;
 import com.julioromano.batchimporter.processing.BatchProcessingFactory;
 import com.julioromano.batchimporter.exceptions.ProcessingException;
+import com.julioromano.batchimporter.utils.AppProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +72,7 @@ public class FileBatchWatcher implements BatchWatcher {
                     };
 
                     ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-                    int delay = 1; // Time for more files to be copied into the folder
+                    long delay = Long.parseLong(AppProperties.getInstance().getProperty(AppProperties.TIME_TO_START_PROCESS)); // Time for more files to be copied into the folder
                     scheduler.schedule(task, delay, TimeUnit.SECONDS);
                     scheduler.shutdown();
                 }

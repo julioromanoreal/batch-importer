@@ -7,6 +7,7 @@ import java.util.Properties;
 public class AppProperties {
 
     public static final String FILE_DELIMITER = "fileDelimiter";
+    public static final String TIME_TO_START_PROCESS = "timeToStartProcess";
     public static final String SALES_DATA_IN_DIR = "salesDataInDir";
     public static final String SALES_DATA_OUT_DIR = "salesDataOutDir";
     private static AppProperties INSTANCE;
