@@ -1,6 +1,6 @@
 package com.julioromano.batchimporter.batch;
 
-import exceptions.ProcessingException;
+import com.julioromano.batchimporter.exceptions.ProcessingException;
 
 public interface BatchWatcher {
 

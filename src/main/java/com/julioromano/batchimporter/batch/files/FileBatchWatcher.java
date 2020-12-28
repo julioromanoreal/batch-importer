@@ -4,7 +4,7 @@ import com.julioromano.batchimporter.batch.BatchWatcher;
 import com.julioromano.batchimporter.batch.files.utils.FileUtils;
 import com.julioromano.batchimporter.processing.BatchProcessing;
 import com.julioromano.batchimporter.processing.BatchProcessingFactory;
-import exceptions.ProcessingException;
+import com.julioromano.batchimporter.exceptions.ProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

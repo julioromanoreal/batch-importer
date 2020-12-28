@@ -1,6 +1,6 @@
 package com.julioromano.batchimporter.processing;
 
-import exceptions.ProcessingException;
+import com.julioromano.batchimporter.exceptions.ProcessingException;
 
 import java.nio.file.Path;
 import java.util.List;

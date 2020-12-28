@@ -1,4 +1,4 @@
-package exceptions;
+package com.julioromano.batchimporter.exceptions;
 
 public class ProcessingException extends RuntimeException {
 

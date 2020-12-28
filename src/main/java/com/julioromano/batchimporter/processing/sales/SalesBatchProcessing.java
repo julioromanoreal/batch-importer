@@ -8,7 +8,7 @@ import com.julioromano.batchimporter.processing.sales.pojo.Sale;
 import com.julioromano.batchimporter.processing.sales.pojo.SaleItem;
 import com.julioromano.batchimporter.processing.sales.pojo.Salesman;
 import com.julioromano.batchimporter.utils.AppProperties;
-import exceptions.ProcessingException;
+import com.julioromano.batchimporter.exceptions.ProcessingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 
