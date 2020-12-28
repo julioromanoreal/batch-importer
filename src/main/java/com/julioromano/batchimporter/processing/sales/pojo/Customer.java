@@ -1,7 +1,5 @@
 package com.julioromano.batchimporter.processing.sales.pojo;
 
-import java.math.BigDecimal;
-
 public class Customer extends SaleData {
 
     private Long cnpj;

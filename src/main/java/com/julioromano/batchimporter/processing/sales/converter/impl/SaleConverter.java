@@ -13,8 +13,8 @@ public class SaleConverter implements SalesDataConverter<Sale> {
         Sale sale = new Sale();
         sale.setId(parts[1]);
 
-        String[] saleItems = parts[2].substring(1, parts[2].length()-1).split(",");
-        for(String saleItemStr : saleItems) {
+        String[] saleItems = parts[2].substring(1, parts[2].length() - 1).split(",");
+        for (String saleItemStr : saleItems) {
             String[] saleItemParts = saleItemStr.split("-");
 
             SaleItem saleItem = new SaleItem();

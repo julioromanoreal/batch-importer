@@ -1,9 +1,9 @@
 package com.julioromano.batchimporter.batch;
 
-import java.io.IOException;
+import exceptions.ProcessingException;
 
 public interface BatchWatcher {
 
-    public void watchFiles(String path) throws IOException;
+    void watchFiles(String path) throws ProcessingException;
 
 }

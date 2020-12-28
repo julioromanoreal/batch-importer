@@ -1,7 +1,6 @@
 package com.julioromano.batchimporter.processing.sales.converter.impl;
 
 import com.julioromano.batchimporter.processing.sales.converter.SalesDataConverter;
-import com.julioromano.batchimporter.processing.sales.pojo.SaleData;
 import com.julioromano.batchimporter.processing.sales.pojo.Salesman;
 
 import java.math.BigDecimal;
