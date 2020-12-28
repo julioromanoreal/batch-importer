@@ -1,6 +1,6 @@
 ## Batch Importer
 
-Program to read text files from a specific directory, analyze the files and produce a report with specific information.
+Program to read .dat files from a specific directory, analyze the files and produce a report with specific information.
 
 The solution requires JRE 15 and Maven.
 
