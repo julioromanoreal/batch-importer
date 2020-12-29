@@ -85,7 +85,7 @@ public class SalesBatchProcessingTest {
     }
 
     @Test(expected = Test.None.class)
-    public void givenCustomerNameContainingTheFileDelimiterThenNoErrorShouldBeThrown() {
+    public void givenCustomerNameContainingTheFileDelimiterThenItShouldNotBeTruncatedAndNoErrorShouldBeThrown() {
         StringReader reader = new StringReader("""
                 001ç1234567891234çPedro Gonçalvesç50000
                 001ç3245678865434çPauloç40000.99
