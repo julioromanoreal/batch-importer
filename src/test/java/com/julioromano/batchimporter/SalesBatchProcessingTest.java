@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SalesBatchProcessingTest {
 
     @Test
-    public void givenFileContentThenCorrectResultShouldBeReturned() {
+    public void givenFileContentThenCorrectResultShouldBeStored() {
         StringReader reader = new StringReader("""
                 001ç1234567891234çPedroç50000
                 001ç3245678865434çPauloç40000.99
@@ -30,8 +30,20 @@ public class SalesBatchProcessingTest {
         assertEquals(result.getCustomersQty(), 2);
         assertEquals(result.getSalesmanQty(), 2);
         assertEquals(result.getMostExpensiveSale(), "10");
-        assertEquals(result.getSalesBySalesman().get("Paulo").setScale(2, RoundingMode.HALF_UP), new BigDecimal("11.60"));
-        assertEquals(result.getSalesBySalesman().get("Pedro").setScale(2, RoundingMode.HALF_UP), new BigDecimal("105.60"));
+        assertEquals(result.getSalesBySalesman().get("Paulo").setScale(2, RoundingMode.HALF_UP), new BigDecimal("393.50"));
+        assertEquals(result.getSalesBySalesman().get("Pedro").setScale(2, RoundingMode.HALF_UP), new BigDecimal("1199.00"));
+    }
+
+    @Test
+    public void givenFileContentThenCorrectResultShouldBeReturned() {
+        SalesBatchProcessing tester = new SalesBatchProcessing();
+        String output = tester.getFormattedOutput(2, 2, "10", "Paulo");
+        assertEquals(output, """
+                Clientes: 2
+                Vendedores: 2
+                Venda mais cara: 10
+                Pior vendedor: Paulo
+                """);
     }
 
     @Test

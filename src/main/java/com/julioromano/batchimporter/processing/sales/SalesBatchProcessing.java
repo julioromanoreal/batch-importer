@@ -180,14 +180,25 @@ public class SalesBatchProcessing implements BatchProcessing {
 
             FileWriter fileWriter = new FileWriter(outputFileDir + fileName);
             try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
-                String outputTpl = "Clientes: %s\nVendedores: %s\nVenda mais cara: %s\nPior vendedor: %s\n";
-                printWriter.printf(outputTpl, salesBatchResult.customersQty,
+                String output = getFormattedOutput(salesBatchResult.customersQty,
                         salesBatchResult.salesmanQty, salesBatchResult.mostExpensiveSale,
                         salesBatchResult.worstSalesman);
+                printWriter.print(output);
             }
         } catch (IOException e) {
             throw new ProcessingException(e);
         }
+    }
+
+    public String getFormattedOutput(int numberOfCustomers, int numberOfSalesman,
+                                            String mostExpensiveSale, String worstSalesman) {
+        String outputTpl = """
+                Clientes: %s
+                Vendedores: %s
+                Venda mais cara: %s
+                Pior vendedor: %s
+                """;
+        return String.format(outputTpl, numberOfCustomers, numberOfSalesman, mostExpensiveSale , worstSalesman);
     }
 
     private void createDirIfDoesNotExist(String outputFileDir) {
