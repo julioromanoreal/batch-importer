@@ -16,6 +16,4 @@ log/
 target/
 
 # Application specific
-data/in/*
-data/out/*
-data/temp/*
+data/

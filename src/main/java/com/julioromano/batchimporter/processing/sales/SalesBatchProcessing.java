@@ -10,6 +10,7 @@ import com.julioromano.batchimporter.utils.AppProperties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -175,6 +176,13 @@ public class SalesBatchProcessing implements BatchProcessing {
         String fileName = new SimpleDateFormat("yyyyMMddHHmm'.dat'").format(new Date());
 
         try {
+            File output = new File(outputFileDir);
+            if (! output.exists()) {
+                if(! output.mkdirs()) {
+                    throw new ProcessingException("Error creating directories");
+                }
+            }
+
             FileWriter fileWriter = new FileWriter(outputFileDir + fileName);
             try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
                 String outputTpl = "Clientes: %s\nVendedores: %s\nVenda mais cara: %s\nPior vendedor: %s\n";
