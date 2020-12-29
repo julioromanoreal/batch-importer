@@ -127,7 +127,7 @@ public class SalesBatchProcessing implements BatchProcessing {
 
             BigDecimal salePrice = BigDecimal.ZERO;
             for (SaleItem saleItem : sale.getItems()) {
-                salePrice = salePrice.add(saleItem.getPrice());
+                salePrice = salePrice.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
             }
 
             if (salePrice.compareTo(result.mostExpensiveSalePrice) > 0) {
@@ -145,8 +145,8 @@ public class SalesBatchProcessing implements BatchProcessing {
         }
     }
 
-    private int handleCustomerData(SalesBatchResult result) {
-        return result.customersQty++;
+    private void handleCustomerData(SalesBatchResult result) {
+        result.customersQty++;
     }
 
     private void handleSalesmanData(SalesBatchResult result, String fileDelimiter, String line) {
