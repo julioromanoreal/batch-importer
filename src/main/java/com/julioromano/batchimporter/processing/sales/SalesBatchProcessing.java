@@ -176,12 +176,7 @@ public class SalesBatchProcessing implements BatchProcessing {
         String fileName = new SimpleDateFormat("yyyyMMddHHmm'.dat'").format(new Date());
 
         try {
-            File output = new File(outputFileDir);
-            if (! output.exists()) {
-                if(! output.mkdirs()) {
-                    throw new ProcessingException("Error creating directories");
-                }
-            }
+            createDirIfDoesNotExist(outputFileDir);
 
             FileWriter fileWriter = new FileWriter(outputFileDir + fileName);
             try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
@@ -192,6 +187,15 @@ public class SalesBatchProcessing implements BatchProcessing {
             }
         } catch (IOException e) {
             throw new ProcessingException(e);
+        }
+    }
+
+    private void createDirIfDoesNotExist(String outputFileDir) {
+        File output = new File(outputFileDir);
+        if (! output.exists()) {
+            if(! output.mkdirs()) {
+                throw new ProcessingException("Error creating directories");
+            }
         }
     }
 
