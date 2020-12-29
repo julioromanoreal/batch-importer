@@ -9,5 +9,5 @@ public interface BatchProcessing {
 
     void process(Path dir, List<Path> files) throws ProcessingException;
 
-    void produceOutput(int customersQty, int salesmanQty, String mostExpensiveSale, String worstSalesman) throws ProcessingException;
+    void produceOutput(BatchResult result) throws ProcessingException;
 }

@@ -1,14 +1,12 @@
 package com.julioromano.batchimporter.processing.sales;
 
+import com.julioromano.batchimporter.exceptions.ProcessingException;
 import com.julioromano.batchimporter.processing.BatchProcessing;
-import com.julioromano.batchimporter.processing.sales.converter.SalesDataConverter;
-import com.julioromano.batchimporter.processing.sales.converter.impl.SaleConverter;
-import com.julioromano.batchimporter.processing.sales.converter.impl.SalesmanConverter;
+import com.julioromano.batchimporter.processing.BatchResult;
 import com.julioromano.batchimporter.processing.sales.pojo.Sale;
 import com.julioromano.batchimporter.processing.sales.pojo.SaleItem;
 import com.julioromano.batchimporter.processing.sales.pojo.Salesman;
 import com.julioromano.batchimporter.utils.AppProperties;
-import com.julioromano.batchimporter.exceptions.ProcessingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 
@@ -20,17 +18,16 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SalesBatchProcessing implements BatchProcessing {
-
-    private static final String SALESMAN = "001";
-    private static final String CUSTOMER = "002";
-    private static final String SALE = "003";
 
     @Override
     public void process(Path dir, List<Path> files) throws ProcessingException {
         ExecutorService es = Executors.newFixedThreadPool(3);
-        List<Callable<DataResult>> todo = new ArrayList<>(files.size());
+        List<Callable<SalesBatchResult>> todo = new ArrayList<>(files.size());
 
         for (Path file : files) {
             todo.add(() -> {
@@ -42,11 +39,11 @@ public class SalesBatchProcessing implements BatchProcessing {
         }
 
         try {
-            List<Future<DataResult>> results = es.invokeAll(todo);
-            DataResult mainResult = new DataResult();
+            List<Future<SalesBatchResult>> results = es.invokeAll(todo);
+            SalesBatchResult mainResult = new SalesBatchResult();
 
-            for (Future<DataResult> result : results) {
-                DataResult dataResult = result.get();
+            for (Future<SalesBatchResult> result : results) {
+                SalesBatchResult dataResult = result.get();
 
                 mainResult.customersQty += dataResult.customersQty;
                 mainResult.salesmanQty += dataResult.salesmanQty;
@@ -80,33 +77,60 @@ public class SalesBatchProcessing implements BatchProcessing {
                 }
             }
 
-            produceOutput(mainResult.customersQty, mainResult.salesmanQty, mainResult.mostExpensiveSale, worstSalesman);
+            mainResult.worstSalesman = worstSalesman;
+            produceOutput(mainResult);
         } catch (InterruptedException | ExecutionException e) {
             throw new ProcessingException(e);
         }
     }
 
-    public DataResult processFile(String fileDelimiter, LineIterator it) {
-        DataResult result = new DataResult();
+    public SalesBatchResult processFile(String fileDelimiter, LineIterator it) {
+        SalesBatchResult result = new SalesBatchResult();
+        Map<String, Consumer<String>> parsers = getParsersMap(result);
 
         while (it.hasNext()) {
             String line = it.nextLine();
             String[] parts = line.split(fileDelimiter);
 
-            if (SALESMAN.equals(parts[0])) {
-                SalesDataConverter<Salesman> salesmanConverter = new SalesmanConverter();
-                Salesman salesman = salesmanConverter.convert(parts);
+            if(parsers.containsKey(parts[0])) {
+                parsers.get(parts[0]).accept(line);
+            }
+        }
+
+        return result;
+    }
+
+    private Map<String, Consumer<String>> getParsersMap(SalesBatchResult result) {
+        Map<String, Consumer<String>> parsers = new HashMap<>();
+        parsers.put(SalesBatchType.SALESMAN.getIdentifier(), line -> {
+            Pattern p = Pattern.compile(SalesBatchType.SALESMAN.getRegexSplitter());
+            Matcher m = p.matcher(line);
+            if (m.matches()) {
+                Long cpf = Long.parseLong(m.group(2));
+                String name = m.group(3);
+                BigDecimal salary = new BigDecimal(m.group(4));
+
+                Salesman salesman = Salesman.builder()
+                        .cpf(cpf).name(name).salary(salary).build();
 
                 result.salesmanQty++;
 
                 if (!result.salesBySalesman.containsKey(salesman.getName())) {
                     result.salesBySalesman.put(salesman.getName(), BigDecimal.ZERO);
                 }
-            } else if (CUSTOMER.equals(parts[0])) {
-                result.customersQty++;
-            } else if (SALE.equals(parts[0])) {
-                SalesDataConverter<Sale> saleConverter = new SaleConverter();
-                Sale sale = saleConverter.convert(parts);
+            }
+        });
+        parsers.put(SalesBatchType.CUSTOMER.getIdentifier(), line -> result.customersQty++);
+        parsers.put(SalesBatchType.SALE.getIdentifier(), line -> {
+            Pattern p = Pattern.compile(SalesBatchType.SALE.getRegexSplitter());
+            Matcher m = p.matcher(line);
+            if (m.matches()) {
+                String id = m.group(2);
+                String items = m.group(3);
+                String salesmanName = m.group(4);
+
+                Sale sale = Sale.builder()
+                        .id(id).salesmanName(salesmanName).items(items).build();
 
                 BigDecimal salePrice = BigDecimal.ZERO;
                 for (SaleItem saleItem : sale.getItems()) {
@@ -126,13 +150,13 @@ public class SalesBatchProcessing implements BatchProcessing {
                 totalSalesmanPrice = totalSalesmanPrice.add(salePrice);
                 result.salesBySalesman.put(sale.getSalesmanName(), totalSalesmanPrice);
             }
-        }
-
-        return result;
+        });
+        return parsers;
     }
 
     @Override
-    public void produceOutput(int customersQty, int salesmanQty, String mostExpensiveSale, String worstSalesman) throws ProcessingException {
+    public void produceOutput(BatchResult batchResult) throws ProcessingException {
+        SalesBatchResult salesBatchResult = (SalesBatchResult) batchResult;
         String outputFileDir = AppProperties.getInstance().getProperty(AppProperties.SALES_DATA_OUT_DIR);
         String fileName = new SimpleDateFormat("yyyyMMddHHmm'.dat'").format(new Date());
 
@@ -140,19 +164,22 @@ public class SalesBatchProcessing implements BatchProcessing {
             FileWriter fileWriter = new FileWriter(outputFileDir + fileName);
             try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
                 String outputTpl = "Clientes: %s\nVendedores: %s\nVenda mais cara: %s\nPior vendedor: %s\n";
-                printWriter.printf(outputTpl, customersQty, salesmanQty, mostExpensiveSale, worstSalesman);
+                printWriter.printf(outputTpl, salesBatchResult.customersQty,
+                        salesBatchResult.salesmanQty, salesBatchResult.mostExpensiveSale,
+                        salesBatchResult.worstSalesman);
             }
         } catch (IOException e) {
             throw new ProcessingException(e);
         }
     }
 
-    public static class DataResult {
+    public static class SalesBatchResult extends BatchResult {
         private final HashMap<String, BigDecimal> salesBySalesman = new HashMap<>();
         private int customersQty = 0;
         private int salesmanQty = 0;
         private String mostExpensiveSale = "";
         private BigDecimal mostExpensiveSalePrice = BigDecimal.ZERO;
+        private String worstSalesman = "";
 
         public int getCustomersQty() {
             return customersQty;

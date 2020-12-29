@@ -25,7 +25,7 @@ public class SalesBatchProcessingTest {
         LineIterator it = new LineIterator(reader);
 
         SalesBatchProcessing tester = new SalesBatchProcessing();
-        SalesBatchProcessing.DataResult result = tester.processFile("ç", it);
+        var result = tester.processFile("ç", it);
 
         assertEquals(result.getCustomersQty(), 2);
         assertEquals(result.getSalesmanQty(), 2);
@@ -48,9 +48,28 @@ public class SalesBatchProcessingTest {
         LineIterator it = new LineIterator(reader);
 
         SalesBatchProcessing tester = new SalesBatchProcessing();
-        SalesBatchProcessing.DataResult result = tester.processFile("ç", it);
+        var result = tester.processFile("ç", it);
 
         assertEquals(result.getSalesBySalesman().get("João"), BigDecimal.ZERO);
+    }
+
+    @Test(expected = Test.None.class)
+    public void givenSalesmanNameContainingTheFileDelimiterThenItShouldNotBeTruncatedAndNoErrorShouldBeThrown() {
+        StringReader reader = new StringReader("""
+                001ç1234567891234çPedroç50000
+                001ç3245678865434çPauloç40000.99
+                001ç9745670165474çGonçalvesç40000.98
+                002ç2345675434544345çJose da SilvaçRural
+                002ç2345675433444345çEduardo PereiraçRural
+                003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çPedro
+                003ç08ç[1-34-10,2-33-1.50,3-40-0.10]çPaulo
+                """);
+        LineIterator it = new LineIterator(reader);
+
+        SalesBatchProcessing tester = new SalesBatchProcessing();
+        var result = tester.processFile("ç", it);
+
+        assertEquals(result.getSalesBySalesman().get("Gonçalves"), BigDecimal.ZERO);
     }
 
     @Test(expected = Test.None.class)
