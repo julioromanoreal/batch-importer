@@ -103,13 +103,9 @@ public class SalesBatchProcessing implements BatchProcessing {
 
     private Map<String, Consumer<String>> getParsersMap(SalesBatchResult result, String fileDelimiter) {
         Map<String, Consumer<String>> parsers = new HashMap<>();
-        parsers.put(SalesBatchType.SALESMAN.getIdentifier(), line -> {
-            handleSalesmanData(result, fileDelimiter, line);
-        });
+        parsers.put(SalesBatchType.SALESMAN.getIdentifier(), line -> handleSalesmanData(result, fileDelimiter, line));
         parsers.put(SalesBatchType.CUSTOMER.getIdentifier(), line -> handleCustomerData(result));
-        parsers.put(SalesBatchType.SALE.getIdentifier(), line -> {
-            handleSaleData(result, fileDelimiter, line);
-        });
+        parsers.put(SalesBatchType.SALE.getIdentifier(), line -> handleSaleData(result, fileDelimiter, line));
         return parsers;
     }
 
