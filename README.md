@@ -32,6 +32,8 @@ The files are read and analyzed line by line so avoiding a high usage of memory 
 
 It can be extended to work with other files by adding the new properties in the properties file and extending the functionality in `com.julioromano.batchimporter.batch.files.FileBatchWatcher`. In the future, it may also be replaced by a database file watcher by implementing the interface `com.julioromano.batchimporter.processing.BatchProcessing` creating the desired functionality.
 
+This application was developed using plain Java, with no external dependencies (such as a database) and the whole analysis and processing taking place in memory. For a different solution, using Docker and PostgreSQL, please refer to [this repository](https://github.com/julioromanoreal/batch-importer-spring-boot).
+
 ### Future improvements
 
 * Consider the usage of [Spring Batch](https://spring.io/projects/spring-batch) or [Apache Spark](https://spark.apache.org/) to process and analyze the files

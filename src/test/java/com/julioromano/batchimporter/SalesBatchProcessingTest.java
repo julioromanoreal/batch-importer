@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SalesBatchProcessingTest {
@@ -65,7 +66,7 @@ public class SalesBatchProcessingTest {
         assertEquals(result.getSalesBySalesman().get("João"), BigDecimal.ZERO);
     }
 
-    @Test(expected = Test.None.class)
+    @Test
     public void givenSalesmanNameContainingTheFileDelimiterThenItShouldNotBeTruncatedAndNoErrorShouldBeThrown() {
         StringReader reader = new StringReader("""
                 001ç1234567891234çPedroç50000
@@ -82,14 +83,16 @@ public class SalesBatchProcessingTest {
         var result = tester.processFile("ç", it);
 
         assertEquals(result.getSalesBySalesman().get("Gonçalves"), BigDecimal.ZERO);
+
+        assertDoesNotThrow(() -> Exception.class);
     }
 
-    @Test(expected = Test.None.class)
-    public void givenCustomerNameContainingTheFileDelimiterThenItShouldNotBeTruncatedAndNoErrorShouldBeThrown() {
+    @Test
+    public void givenCustomerNameContainingTheFileDelimiterThenNoErrorShouldBeThrown() {
         StringReader reader = new StringReader("""
                 001ç1234567891234çPedro Gonçalvesç50000
                 001ç3245678865434çPauloç40000.99
-                001ç9745670165474çGonçalvesç40000.98
+                002ç2345675987544345çPedro GonçalvesçRural
                 002ç2345675434544345çJose da SilvaçRural
                 002ç2345675433444345çEduardo PereiraçRural
                 003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çPedro
@@ -99,14 +102,18 @@ public class SalesBatchProcessingTest {
 
         SalesBatchProcessing tester = new SalesBatchProcessing();
         tester.processFile("ç", it);
+
+        assertDoesNotThrow(() -> Exception.class);
     }
 
-    @Test(expected = Test.None.class)
+    @Test
     public void givenAnEmptyFileThenNoErrorShouldBeThrown() {
         StringReader reader = new StringReader("");
         LineIterator it = new LineIterator(reader);
 
         SalesBatchProcessing tester = new SalesBatchProcessing();
         tester.processFile("ç", it);
+
+        assertDoesNotThrow(() -> Exception.class);
     }
 }
