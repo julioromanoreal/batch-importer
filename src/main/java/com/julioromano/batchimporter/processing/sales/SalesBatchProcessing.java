@@ -86,24 +86,25 @@ public class SalesBatchProcessing implements BatchProcessing {
 
     public SalesBatchResult processFile(String fileDelimiter, LineIterator it) {
         SalesBatchResult result = new SalesBatchResult();
-        Map<String, Consumer<String>> parsers = getParsersMap(result);
+        Map<String, Consumer<String>> parsers = getParsersMap(result, fileDelimiter);
 
         while (it.hasNext()) {
             String line = it.nextLine();
-            String[] parts = line.split(fileDelimiter);
+            String identifier = line.substring(0, line.indexOf(fileDelimiter));
 
-            if(parsers.containsKey(parts[0])) {
-                parsers.get(parts[0]).accept(line);
+            if(parsers.containsKey(identifier)) {
+                parsers.get(identifier).accept(line);
             }
         }
 
         return result;
     }
 
-    private Map<String, Consumer<String>> getParsersMap(SalesBatchResult result) {
+    private Map<String, Consumer<String>> getParsersMap(SalesBatchResult result, String fileDelimiter) {
         Map<String, Consumer<String>> parsers = new HashMap<>();
         parsers.put(SalesBatchType.SALESMAN.getIdentifier(), line -> {
-            Pattern p = Pattern.compile(SalesBatchType.SALESMAN.getRegexSplitter());
+            String regexSplitter = SalesBatchType.SALESMAN.getRegexSplitter().replaceAll("DEL", fileDelimiter);
+            Pattern p = Pattern.compile(regexSplitter);
             Matcher m = p.matcher(line);
             if (m.matches()) {
                 Long cpf = Long.parseLong(m.group(2));
@@ -122,7 +123,8 @@ public class SalesBatchProcessing implements BatchProcessing {
         });
         parsers.put(SalesBatchType.CUSTOMER.getIdentifier(), line -> result.customersQty++);
         parsers.put(SalesBatchType.SALE.getIdentifier(), line -> {
-            Pattern p = Pattern.compile(SalesBatchType.SALE.getRegexSplitter());
+            String regexSplitter = SalesBatchType.SALE.getRegexSplitter().replaceAll("DEL", fileDelimiter);
+            Pattern p = Pattern.compile(regexSplitter);
             Matcher m = p.matcher(line);
             if (m.matches()) {
                 String id = m.group(2);

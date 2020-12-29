@@ -2,9 +2,9 @@ package com.julioromano.batchimporter.processing.sales;
 
 public enum SalesBatchType {
 
-    SALESMAN("001", "([0-9]+)ç([0-9]+)ç(.+)ç([0-9\\.]+)"),
-    CUSTOMER("002", "([0-9]+)ç([0-9]+)ç(.+)ç(.+)"),
-    SALE("003", "([0-9]+)ç([0-9]+)ç(.+)ç(.+)");
+    SALESMAN("001", "([0-9]+)DEL([0-9]+)DEL(.+)DEL([0-9\\.]+)"),
+    CUSTOMER("002", "([0-9]+)DEL([0-9]+)DEL(.+)DEL(.+)"),
+    SALE("003", "([0-9]+)DEL([0-9]+)DEL(.+)DEL(.+)");
 
     private final String identifier;
     private final String regexSplitter;
