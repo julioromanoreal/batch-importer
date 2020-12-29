@@ -103,57 +103,69 @@ public class SalesBatchProcessing implements BatchProcessing {
     private Map<String, Consumer<String>> getParsersMap(SalesBatchResult result, String fileDelimiter) {
         Map<String, Consumer<String>> parsers = new HashMap<>();
         parsers.put(SalesBatchType.SALESMAN.getIdentifier(), line -> {
-            String regexSplitter = SalesBatchType.SALESMAN.getRegexSplitter().replaceAll("DEL", fileDelimiter);
-            Pattern p = Pattern.compile(regexSplitter);
-            Matcher m = p.matcher(line);
-            if (m.matches()) {
-                Long cpf = Long.parseLong(m.group(2));
-                String name = m.group(3);
-                BigDecimal salary = new BigDecimal(m.group(4));
-
-                Salesman salesman = Salesman.builder()
-                        .cpf(cpf).name(name).salary(salary).build();
-
-                result.salesmanQty++;
-
-                if (!result.salesBySalesman.containsKey(salesman.getName())) {
-                    result.salesBySalesman.put(salesman.getName(), BigDecimal.ZERO);
-                }
-            }
+            handleSalesmanData(result, fileDelimiter, line);
         });
-        parsers.put(SalesBatchType.CUSTOMER.getIdentifier(), line -> result.customersQty++);
+        parsers.put(SalesBatchType.CUSTOMER.getIdentifier(), line -> handleCustomerData(result));
         parsers.put(SalesBatchType.SALE.getIdentifier(), line -> {
-            String regexSplitter = SalesBatchType.SALE.getRegexSplitter().replaceAll("DEL", fileDelimiter);
-            Pattern p = Pattern.compile(regexSplitter);
-            Matcher m = p.matcher(line);
-            if (m.matches()) {
-                String id = m.group(2);
-                String items = m.group(3);
-                String salesmanName = m.group(4);
-
-                Sale sale = Sale.builder()
-                        .id(id).salesmanName(salesmanName).items(items).build();
-
-                BigDecimal salePrice = BigDecimal.ZERO;
-                for (SaleItem saleItem : sale.getItems()) {
-                    salePrice = salePrice.add(saleItem.getPrice());
-                }
-
-                if (salePrice.compareTo(result.mostExpensiveSalePrice) > 0) {
-                    result.mostExpensiveSale = sale.getId();
-                    result.mostExpensiveSalePrice = salePrice;
-                }
-
-                if (!result.salesBySalesman.containsKey(sale.getSalesmanName())) {
-                    result.salesBySalesman.put(sale.getSalesmanName(), BigDecimal.ZERO);
-                }
-
-                BigDecimal totalSalesmanPrice = result.salesBySalesman.get(sale.getSalesmanName());
-                totalSalesmanPrice = totalSalesmanPrice.add(salePrice);
-                result.salesBySalesman.put(sale.getSalesmanName(), totalSalesmanPrice);
-            }
+            handleSaleData(result, fileDelimiter, line);
         });
         return parsers;
+    }
+
+    private void handleSaleData(SalesBatchResult result, String fileDelimiter, String line) {
+        String regexSplitter = SalesBatchType.SALE.getRegexSplitter().replaceAll("DEL", fileDelimiter);
+        Pattern p = Pattern.compile(regexSplitter);
+        Matcher m = p.matcher(line);
+        if (m.matches()) {
+            String id = m.group(2);
+            String items = m.group(3);
+            String salesmanName = m.group(4);
+
+            Sale sale = Sale.builder()
+                    .id(id).salesmanName(salesmanName).items(items).build();
+
+            BigDecimal salePrice = BigDecimal.ZERO;
+            for (SaleItem saleItem : sale.getItems()) {
+                salePrice = salePrice.add(saleItem.getPrice());
+            }
+
+            if (salePrice.compareTo(result.mostExpensiveSalePrice) > 0) {
+                result.mostExpensiveSale = sale.getId();
+                result.mostExpensiveSalePrice = salePrice;
+            }
+
+            if (!result.salesBySalesman.containsKey(sale.getSalesmanName())) {
+                result.salesBySalesman.put(sale.getSalesmanName(), BigDecimal.ZERO);
+            }
+
+            BigDecimal totalSalesmanPrice = result.salesBySalesman.get(sale.getSalesmanName());
+            totalSalesmanPrice = totalSalesmanPrice.add(salePrice);
+            result.salesBySalesman.put(sale.getSalesmanName(), totalSalesmanPrice);
+        }
+    }
+
+    private int handleCustomerData(SalesBatchResult result) {
+        return result.customersQty++;
+    }
+
+    private void handleSalesmanData(SalesBatchResult result, String fileDelimiter, String line) {
+        String regexSplitter = SalesBatchType.SALESMAN.getRegexSplitter().replaceAll("DEL", fileDelimiter);
+        Pattern p = Pattern.compile(regexSplitter);
+        Matcher m = p.matcher(line);
+        if (m.matches()) {
+            Long cpf = Long.parseLong(m.group(2));
+            String name = m.group(3);
+            BigDecimal salary = new BigDecimal(m.group(4));
+
+            Salesman salesman = Salesman.builder()
+                    .cpf(cpf).name(name).salary(salary).build();
+
+            result.salesmanQty++;
+
+            if (!result.salesBySalesman.containsKey(salesman.getName())) {
+                result.salesBySalesman.put(salesman.getName(), BigDecimal.ZERO);
+            }
+        }
     }
 
     @Override
