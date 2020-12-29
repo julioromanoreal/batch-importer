@@ -75,7 +75,7 @@ public class SalesBatchProcessingTest {
     @Test(expected = Test.None.class)
     public void givenCustomerNameContainingTheFileDelimiterThenNoErrorShouldBeThrown() {
         StringReader reader = new StringReader("""
-                001ç1234567891234çPedroç50000
+                001ç1234567891234çPedro Gonçalvesç50000
                 001ç3245678865434çPauloç40000.99
                 001ç9745670165474çGonçalvesç40000.98
                 002ç2345675434544345çJose da SilvaçRural
