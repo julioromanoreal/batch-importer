@@ -31,9 +31,8 @@ public class FileBatchWatcher implements BatchWatcher {
         LOGGER.info("Watching for new files in " + path);
 
         try {
-            Path dir = Path.of(path);
             WatchService watcher = FileSystems.getDefault().newWatchService();
-            WatchKey key = dir.register(watcher, ENTRY_CREATE);
+            WatchKey key = Path.of(path).register(watcher, ENTRY_CREATE);
 
             // Keep watching the directory waiting for new files to be processed
             // As soon as a new file gets created/copied into this directory, the process will be triggered
