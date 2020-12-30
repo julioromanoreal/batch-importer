@@ -32,7 +32,7 @@ public class SalesBatchProcessing implements BatchProcessing {
     private static final Logger LOGGER = LoggerFactory.getLogger(SalesBatchProcessing.class);
 
     @Override
-    public void process(Path dir, List<Path> files) throws ProcessingException {
+    public void process(List<Path> files) throws ProcessingException {
         ExecutorService es = Executors.newFixedThreadPool(3);
         List<Callable<SalesBatchResult>> todo = new ArrayList<>(files.size());
         processFiles(files, todo);

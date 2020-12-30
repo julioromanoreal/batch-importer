@@ -30,9 +30,8 @@ public class FileBatchWatcher implements BatchWatcher {
     public void watchFiles(String path) throws FileWatchingException {
         LOGGER.info("Watching for new files in " + path);
 
-        Path dir = Path.of(path);
-
         try {
+            Path dir = Path.of(path);
             WatchService watcher = FileSystems.getDefault().newWatchService();
             WatchKey key = dir.register(watcher, ENTRY_CREATE);
 
@@ -51,7 +50,7 @@ public class FileBatchWatcher implements BatchWatcher {
                         continue;
                     }
 
-                    execute(path, dir);
+                    execute(path);
                 }
 
                 boolean valid = key.reset();
@@ -66,21 +65,21 @@ public class FileBatchWatcher implements BatchWatcher {
 
     }
 
-    private void execute(String path, Path dir) {
+    private void execute(String path) {
         EXECUTING = true;
 
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         long delay = Long.parseLong(AppProperties.getInstance().getProperty(AppProperties.TIME_TO_START_PROCESS)); // Time for more files to be copied into the folder
-        scheduler.schedule(getTask(path, dir), delay, TimeUnit.SECONDS);
+        scheduler.schedule(getTask(path), delay, TimeUnit.SECONDS);
         scheduler.shutdown();
     }
 
-    private Runnable getTask(String path, Path dir) {
+    private Runnable getTask(String path) {
         return () -> {
             try {
                 List<Path> files = getFiles(path);
                 BatchProcessing salesBatchProcessing = BatchProcessingFactory.getSalesBatchProcessing();
-                salesBatchProcessing.process(dir, files);
+                salesBatchProcessing.process(files);
             } catch (IOException | ProcessingException e) {
                 LOGGER.error("Error processing files", e);
             } finally {

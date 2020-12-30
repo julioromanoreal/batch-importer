@@ -19,7 +19,7 @@ import java.util.List;
  */
 public interface BatchProcessing {
 
-    void process(Path dir, List<Path> files) throws ProcessingException;
+    void process(List<Path> files) throws ProcessingException;
 
     void produceOutput(BatchResult result) throws ProcessOutputException, DirectoryCreationException;
 }
