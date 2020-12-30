@@ -43,44 +43,58 @@ public class SalesBatchProcessing implements BatchProcessing {
 
             for (Future<SalesBatchResult> result : results) {
                 SalesBatchResult dataResult = result.get();
-
-                mainResult.customersQty += dataResult.customersQty;
-                mainResult.salesmanQty += dataResult.salesmanQty;
-
-                if (dataResult.mostExpensiveSalePrice.compareTo(mainResult.mostExpensiveSalePrice) > 0) {
-                    mainResult.mostExpensiveSale = dataResult.mostExpensiveSale;
-                    mainResult.mostExpensiveSalePrice = dataResult.mostExpensiveSalePrice;
-                }
-
-                Set<String> keys = dataResult.salesBySalesman.keySet();
-                for (String key : keys) {
-                    if (!mainResult.salesBySalesman.containsKey(key)) {
-                        mainResult.salesBySalesman.put(key, BigDecimal.ZERO);
-                    }
-
-                    BigDecimal sales = mainResult.salesBySalesman.get(key);
-                    sales = sales.add(dataResult.salesBySalesman.get(key));
-                    mainResult.salesBySalesman.put(key, sales);
-                }
+                analyzePeopleData(mainResult, dataResult);
+                analyzeSalesData(mainResult, dataResult);
             }
 
-            Set<String> salesmanSet = mainResult.salesBySalesman.keySet();
-            String worstSalesman = "";
-            BigDecimal worstSalesmanTotalPrice = BigDecimal.ZERO;
-            for (String salesmanKey : salesmanSet) {
-                BigDecimal salesmanTotalPrice = mainResult.salesBySalesman.get(salesmanKey);
-                if (worstSalesmanTotalPrice.compareTo(BigDecimal.ZERO) == 0
-                        || salesmanTotalPrice.compareTo(worstSalesmanTotalPrice) < 0) {
-                    worstSalesman = salesmanKey;
-                    worstSalesmanTotalPrice = salesmanTotalPrice;
-                }
-            }
+            mainResult.worstSalesman = analyzeSalesmanData(mainResult);
 
-            mainResult.worstSalesman = worstSalesman;
             produceOutput(mainResult);
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Error processing files " + files);
             throw new ProcessingException(e);
+        }
+    }
+
+    private void analyzePeopleData(SalesBatchResult mainResult, SalesBatchResult dataResult) {
+        mainResult.customersQty += dataResult.customersQty;
+        mainResult.salesmanQty += dataResult.salesmanQty;
+    }
+
+    private String analyzeSalesmanData(SalesBatchResult mainResult) {
+        Set<String> salesmanSet = mainResult.salesBySalesman.keySet();
+        String worstSalesman = "";
+        BigDecimal worstSalesmanTotalPrice = BigDecimal.ZERO;
+        for (String salesmanKey : salesmanSet) {
+            BigDecimal salesmanTotalPrice = mainResult.salesBySalesman.get(salesmanKey);
+            if (worstSalesmanTotalPrice.compareTo(BigDecimal.ZERO) == 0
+                    || salesmanTotalPrice.compareTo(worstSalesmanTotalPrice) < 0) {
+                worstSalesman = salesmanKey;
+                worstSalesmanTotalPrice = salesmanTotalPrice;
+            }
+        }
+        return worstSalesman;
+    }
+
+    private void analyzeSalesData(SalesBatchResult mainResult, SalesBatchResult dataResult) {
+        if (dataResult.mostExpensiveSalePrice.compareTo(mainResult.mostExpensiveSalePrice) > 0) {
+            mainResult.mostExpensiveSale = dataResult.mostExpensiveSale;
+            mainResult.mostExpensiveSalePrice = dataResult.mostExpensiveSalePrice;
+        }
+
+        analyzeSalesmanTotalAmount(mainResult, dataResult);
+    }
+
+    private void analyzeSalesmanTotalAmount(SalesBatchResult mainResult, SalesBatchResult dataResult) {
+        Set<String> keys = dataResult.salesBySalesman.keySet();
+        for (String key : keys) {
+            if (!mainResult.salesBySalesman.containsKey(key)) {
+                mainResult.salesBySalesman.put(key, BigDecimal.ZERO);
+            }
+
+            BigDecimal sales = mainResult.salesBySalesman.get(key);
+            sales = sales.add(dataResult.salesBySalesman.get(key));
+            mainResult.salesBySalesman.put(key, sales);
         }
     }
 
@@ -131,24 +145,28 @@ public class SalesBatchProcessing implements BatchProcessing {
             Sale sale = Sale.builder()
                     .id(id).salesmanName(salesmanName).items(items).build();
 
-            BigDecimal salePrice = BigDecimal.ZERO;
-            for (SaleItem saleItem : sale.getItems()) {
-                salePrice = salePrice.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
-            }
-
-            if (salePrice.compareTo(result.mostExpensiveSalePrice) > 0) {
-                result.mostExpensiveSale = sale.getId();
-                result.mostExpensiveSalePrice = salePrice;
-            }
-
-            if (!result.salesBySalesman.containsKey(sale.getSalesmanName())) {
-                result.salesBySalesman.put(sale.getSalesmanName(), BigDecimal.ZERO);
-            }
-
-            BigDecimal totalSalesmanPrice = result.salesBySalesman.get(sale.getSalesmanName());
-            totalSalesmanPrice = totalSalesmanPrice.add(salePrice);
-            result.salesBySalesman.put(sale.getSalesmanName(), totalSalesmanPrice);
+            analyzeSale(result, sale);
         }
+    }
+
+    private void analyzeSale(SalesBatchResult result, Sale sale) {
+        BigDecimal salePrice = BigDecimal.ZERO;
+        for (SaleItem saleItem : sale.getItems()) {
+            salePrice = salePrice.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
+        }
+
+        if (salePrice.compareTo(result.mostExpensiveSalePrice) > 0) {
+            result.mostExpensiveSale = sale.getId();
+            result.mostExpensiveSalePrice = salePrice;
+        }
+
+        if (!result.salesBySalesman.containsKey(sale.getSalesmanName())) {
+            result.salesBySalesman.put(sale.getSalesmanName(), BigDecimal.ZERO);
+        }
+
+        BigDecimal totalSalesmanPrice = result.salesBySalesman.get(sale.getSalesmanName());
+        totalSalesmanPrice = totalSalesmanPrice.add(salePrice);
+        result.salesBySalesman.put(sale.getSalesmanName(), totalSalesmanPrice);
     }
 
     private void handleCustomerData(SalesBatchResult result) {
