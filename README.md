@@ -22,7 +22,7 @@ Program to read .dat files from a specific directory, analyze the files and prod
     </li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#future-improvements">Future improvements</a></li>
-<li><a href="#alternative-solution">Alternative solution</a></li>
+    <li><a href="#alternative-solution">Alternative solution</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -99,7 +99,7 @@ The application will monitor the directory specified as the `salesDataInDir` and
 * Consider the usage of [Spring Batch](https://spring.io/projects/spring-batch) or [Apache Spark](https://spark.apache.org/) to process and analyze the files
 * Consider working with [Apache Hadoop](https://hadoop.apache.org/) to better deal with a larger set of data
 
-## Alternatives
+## Alternative Solution
 
 For an alternative version, using Spring Boot, Docker and PostgreSQL, please refer to [https://github.com/julioromanoreal/batch-importer-spring-boot](https://github.com/julioromanoreal/batch-importer-spring-boot)
 
