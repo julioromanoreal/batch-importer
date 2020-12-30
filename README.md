@@ -2,39 +2,122 @@
 
 Program to read .dat files from a specific directory, analyze the files and produce a report with specific information.
 
-The solution requires JRE 15 and Maven.
+-----
 
-To run it one should first build the project using Maven using the command
+<details open="open">
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ol>
+</details>
 
+---
+
+## About The Project
+
+This is a simple project containing an endpoint that triggers a process that reads .dat files from a specific directory, analyze them and produce a report with specific information.
+
+### Built With
+
+* Java 15
+* [Maven](https://github.com/apache/maven)
+
+## Getting Started
+
+To get a local copy up and running follow these simple steps.
+
+### Prerequisites
+
+Make sure the following prerequisites are installed in your machine:
+
+* Java 15
+
+Run the following command to confirm:
+
+```sh-session
+$ java -version
+openjdk version "15.0.1" 2020-10-20
+OpenJDK Runtime Environment (build 15.0.1+9-18)
+OpenJDK 64-Bit Server VM (build 15.0.1+9-18, mixed mode, sharing)
 ```
-mvn package
+
+* Maven
+
+
+Run the following command to confirm:
+
+```sh-session
+$ mvn --version
+Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
 ```
 
-And then execute the Main class, inside `src/main/java/com/julioromano/batchimporter`
 
-To run the tests one can use the command
 
+### Installation
+
+1. Clone the repo
+```sh
+$ git clone https://github.com/julioromanoreal/batch-importer.git
 ```
-mvn test
+2. Install Maven dependencies
+```sh
+$ mvn package
+```
+3. Set the required properties at `src/main/resources/application.properties`
+    * `salesDataInDir`: Directory in which the .dat files will be
+    * `salesDataOutDir`: Directory in which the output file will be created
+
+
+4. Start the application
+```sh
+$ java -jar com.julioromano.batchimporter.Main
 ```
 
-To configure it, use the file `src/main/java/resources/application.properties`, replacing the following properties:
-* `fileDelimiter`: The character that delimits different information in the input file
-* `timeToStartProcess`: Time to wait before starting the process when a new file is detected. This is to make it possible for many huge files to be copied and processed together rather than starting the process right away, while other files are still being copied.
-* `salesDataInDir`: Directory to be watched in order to get new input files to be processed
-* `salesDataOutDir`: Directory where the output file will be saved
+## Usage
 
-After running the `Main` class, everytime a new file gets created/copied into the `salesDataInDir` directory, the process will be automatically triggered.
+The application will monitor the directory specified as the `salesDataInDir` and whenever new .dat files are detected, the process will automatically start so the program will read all .dat files in the directory specified, analyze them and produce a report in the directory specified as the `salesDataOutDir`
 
-The program will keep running indefinitely and will only be stopped by quiting the JVM process.
-
-The files are read and analyzed line by line so avoiding a high usage of memory by not keeping too much information in the heap. 
-
-It can be extended to work with other files by adding the new properties in the properties file and extending the functionality in `com.julioromano.batchimporter.batch.files.FileBatchWatcher`. In the future, it may also be replaced by a database file watcher by implementing the interface `com.julioromano.batchimporter.processing.BatchProcessing` creating the desired functionality.
-
-This application was developed using plain Java, with no external dependencies (such as a database) and the whole analysis and processing taking place in memory. For a different solution, using Docker and PostgreSQL, please refer to [this repository](https://github.com/julioromanoreal/batch-importer-spring-boot).
-
-### Future improvements
-
+## Future improvements
 * Consider the usage of [Spring Batch](https://spring.io/projects/spring-batch) or [Apache Spark](https://spark.apache.org/) to process and analyze the files
 * Consider working with [Apache Hadoop](https://hadoop.apache.org/) to better deal with a larger set of data
+
+## Alternatives
+
+For an alternative version, using Spring Boot, Docker and PostgreSQL, please refer to [https://github.com/julioromanoreal/batch-importer-spring-boot](https://github.com/julioromanoreal/batch-importer-spring-boot)
+
+## Contributing
+
+Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## Contact
+
+Julio Romano - [@julioromano_](https://twitter.com/julioromano_) - julio.romano@gmail.com
+
+Project Link: [https://github.com/julioromanoreal/batch-importer](https://github.com/julioromanoreal/batch-importer)

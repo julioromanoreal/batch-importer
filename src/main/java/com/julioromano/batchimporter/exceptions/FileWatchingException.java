@@ -1,10 +1,10 @@
 package com.julioromano.batchimporter.exceptions;
 
 /**
- * {@code ProcessingException} is a general exception that represents
- * a problem while processing the new files found.
+ * {@code FileWatchingException} is an exception that represents a problem
+ * when watching new files to be parsed and analyzed.
  *
- * <p>{@code ProcessingException} and its subclasses are <em>unchecked
+ * <p>{@code FileWatchingException} and its subclasses are <em>unchecked
  * exceptions</em>.  Unchecked exceptions do <em>not</em> need to be
  * declared in a method or constructor's {@code throws} clause if they
  * can be thrown by the execution of the method or constructor and
@@ -13,13 +13,13 @@ package com.julioromano.batchimporter.exceptions;
  * @author  Julio Romano
  * @since   1.0
  */
-public class ProcessingException extends RuntimeException {
+public class FileWatchingException extends RuntimeException {
 
-    public ProcessingException(Throwable cause) {
+    public FileWatchingException(Throwable cause) {
         super(cause);
     }
 
-    public ProcessingException(String message) {
+    public FileWatchingException(String message) {
         super(message);
     }
 

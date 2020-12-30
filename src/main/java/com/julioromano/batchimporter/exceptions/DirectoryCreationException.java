@@ -1,10 +1,10 @@
 package com.julioromano.batchimporter.exceptions;
 
 /**
- * {@code ProcessingException} is a general exception that represents
- * a problem while processing the new files found.
+ * {@code DirectoryCreationException} is an exception that represents a problem
+ * to create a directory needed by the application.
  *
- * <p>{@code ProcessingException} and its subclasses are <em>unchecked
+ * <p>{@code DirectoryCreationException} and its subclasses are <em>unchecked
  * exceptions</em>.  Unchecked exceptions do <em>not</em> need to be
  * declared in a method or constructor's {@code throws} clause if they
  * can be thrown by the execution of the method or constructor and
@@ -13,13 +13,13 @@ package com.julioromano.batchimporter.exceptions;
  * @author  Julio Romano
  * @since   1.0
  */
-public class ProcessingException extends RuntimeException {
+public class DirectoryCreationException extends RuntimeException {
 
-    public ProcessingException(Throwable cause) {
+    public DirectoryCreationException(Throwable cause) {
         super(cause);
     }
 
-    public ProcessingException(String message) {
+    public DirectoryCreationException(String message) {
         super(message);
     }
 

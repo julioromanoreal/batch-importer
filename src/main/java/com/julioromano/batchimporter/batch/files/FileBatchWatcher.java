@@ -2,6 +2,7 @@ package com.julioromano.batchimporter.batch.files;
 
 import com.julioromano.batchimporter.batch.BatchWatcher;
 import com.julioromano.batchimporter.batch.files.utils.FileUtils;
+import com.julioromano.batchimporter.exceptions.FileWatchingException;
 import com.julioromano.batchimporter.processing.BatchProcessing;
 import com.julioromano.batchimporter.processing.BatchProcessingFactory;
 import com.julioromano.batchimporter.exceptions.ProcessingException;
@@ -26,8 +27,8 @@ public class FileBatchWatcher implements BatchWatcher {
     private final static Logger LOGGER = LoggerFactory.getLogger(FileBatchWatcher.class);
     private static boolean EXECUTING = false;
 
-    public void watchFiles(String path) throws ProcessingException {
-        LOGGER.debug("Watching for new files in " + path);
+    public void watchFiles(String path) throws FileWatchingException {
+        LOGGER.info("Watching for new files in " + path);
 
         Path dir = Path.of(path);
 
@@ -50,31 +51,7 @@ public class FileBatchWatcher implements BatchWatcher {
                         continue;
                     }
 
-                    EXECUTING = true;
-
-                    Runnable task = () -> {
-                        try {
-                            List<Path> files = Files.walk(Paths.get(path))
-                                    .filter(Files::isRegularFile)
-                                    .filter(f -> {
-                                        Optional<String> extension = FileUtils.getExtensionByStringHandling(f.toString());
-                                        return extension.isPresent() && extension.get().equals("dat");
-                                    })
-                                    .collect(Collectors.toList());
-
-                            BatchProcessing salesBatchProcessing = BatchProcessingFactory.getSalesBatchProcessing();
-                            salesBatchProcessing.process(dir, files);
-                        } catch (IOException | ProcessingException e) {
-                            LOGGER.error("Error processing files", e);
-                        } finally {
-                            EXECUTING = false;
-                        }
-                    };
-
-                    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-                    long delay = Long.parseLong(AppProperties.getInstance().getProperty(AppProperties.TIME_TO_START_PROCESS)); // Time for more files to be copied into the folder
-                    scheduler.schedule(task, delay, TimeUnit.SECONDS);
-                    scheduler.shutdown();
+                    execute(path, dir);
                 }
 
                 boolean valid = key.reset();
@@ -84,9 +61,42 @@ public class FileBatchWatcher implements BatchWatcher {
             }
         } catch (IOException x) {
             LOGGER.error("Error watching for new files in " + path, x);
-            throw new ProcessingException(x);
+            throw new FileWatchingException(x);
         }
 
+    }
+
+    private void execute(String path, Path dir) {
+        EXECUTING = true;
+
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        long delay = Long.parseLong(AppProperties.getInstance().getProperty(AppProperties.TIME_TO_START_PROCESS)); // Time for more files to be copied into the folder
+        scheduler.schedule(getTask(path, dir), delay, TimeUnit.SECONDS);
+        scheduler.shutdown();
+    }
+
+    private Runnable getTask(String path, Path dir) {
+        return () -> {
+            try {
+                List<Path> files = getFiles(path);
+                BatchProcessing salesBatchProcessing = BatchProcessingFactory.getSalesBatchProcessing();
+                salesBatchProcessing.process(dir, files);
+            } catch (IOException | ProcessingException e) {
+                LOGGER.error("Error processing files", e);
+            } finally {
+                EXECUTING = false;
+            }
+        };
+    }
+
+    private List<Path> getFiles(String path) throws IOException {
+        return Files.walk(Paths.get(path))
+                .filter(Files::isRegularFile)
+                .filter(f -> {
+                    Optional<String> extension = FileUtils.getExtensionByStringHandling(f.toString());
+                    return extension.isPresent() && extension.get().equals("dat");
+                })
+                .collect(Collectors.toList());
     }
 
 }

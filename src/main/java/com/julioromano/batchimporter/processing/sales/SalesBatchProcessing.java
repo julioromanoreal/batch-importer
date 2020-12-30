@@ -1,5 +1,7 @@
 package com.julioromano.batchimporter.processing.sales;
 
+import com.julioromano.batchimporter.exceptions.DirectoryCreationException;
+import com.julioromano.batchimporter.exceptions.ProcessOutputException;
 import com.julioromano.batchimporter.exceptions.ProcessingException;
 import com.julioromano.batchimporter.processing.BatchProcessing;
 import com.julioromano.batchimporter.processing.BatchResult;
@@ -9,6 +11,8 @@ import com.julioromano.batchimporter.processing.sales.pojo.Salesman;
 import com.julioromano.batchimporter.utils.AppProperties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -25,19 +29,13 @@ import java.util.regex.Pattern;
 
 public class SalesBatchProcessing implements BatchProcessing {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SalesBatchProcessing.class);
+
     @Override
     public void process(Path dir, List<Path> files) throws ProcessingException {
         ExecutorService es = Executors.newFixedThreadPool(3);
         List<Callable<SalesBatchResult>> todo = new ArrayList<>(files.size());
-
-        for (Path file : files) {
-            todo.add(() -> {
-                try (LineIterator it = FileUtils.lineIterator(file.toFile(), "UTF-8")) {
-                    String fileDelimiter = AppProperties.getInstance().getProperty(AppProperties.FILE_DELIMITER);
-                    return processFile(fileDelimiter, it);
-                }
-            });
-        }
+        processFiles(files, todo);
 
         try {
             List<Future<SalesBatchResult>> results = es.invokeAll(todo);
@@ -81,7 +79,19 @@ public class SalesBatchProcessing implements BatchProcessing {
             mainResult.worstSalesman = worstSalesman;
             produceOutput(mainResult);
         } catch (InterruptedException | ExecutionException e) {
+            LOGGER.error("Error processing files " + files);
             throw new ProcessingException(e);
+        }
+    }
+
+    private void processFiles(List<Path> files, List<Callable<SalesBatchResult>> todo) {
+        for (Path file : files) {
+            todo.add(() -> {
+                try (LineIterator it = FileUtils.lineIterator(file.toFile(), "UTF-8")) {
+                    String fileDelimiter = AppProperties.getInstance().getProperty(AppProperties.FILE_DELIMITER);
+                    return processFile(fileDelimiter, it);
+                }
+            });
         }
     }
 
@@ -166,42 +176,48 @@ public class SalesBatchProcessing implements BatchProcessing {
     }
 
     @Override
-    public void produceOutput(BatchResult batchResult) throws ProcessingException {
-        SalesBatchResult salesBatchResult = (SalesBatchResult) batchResult;
+    public void produceOutput(BatchResult batchResult) throws ProcessOutputException, DirectoryCreationException {
+        LOGGER.info("Processing the output of the process");
+
         String outputFileDir = AppProperties.getInstance().getProperty(AppProperties.SALES_DATA_OUT_DIR);
-        String fileName = new SimpleDateFormat("yyyyMMddHHmm'.dat'").format(new Date());
+        createDirIfDoesNotExist(outputFileDir);
 
         try {
-            createDirIfDoesNotExist(outputFileDir);
+            SalesBatchResult salesBatchResult = (SalesBatchResult) batchResult;
+            String fileName = new SimpleDateFormat("yyyyMMddHHmm'.dat'").format(new Date());
 
-            FileWriter fileWriter = new FileWriter(outputFileDir + fileName);
-            try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
-                String output = getFormattedOutput(salesBatchResult.customersQty,
-                        salesBatchResult.salesmanQty, salesBatchResult.mostExpensiveSale,
-                        salesBatchResult.worstSalesman);
-                printWriter.print(output);
-            }
+            createOutputFile(outputFileDir, salesBatchResult, fileName);
         } catch (IOException e) {
-            throw new ProcessingException(e);
+            LOGGER.error("Error producing output file");
+            throw new ProcessOutputException(e);
         }
     }
 
-    public String getFormattedOutput(int numberOfCustomers, int numberOfSalesman,
-                                            String mostExpensiveSale, String worstSalesman) {
+    private void createOutputFile(String outputFileDir, SalesBatchResult salesBatchResult, String fileName) throws IOException {
+        FileWriter fileWriter = new FileWriter(outputFileDir + fileName);
+        try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
+            String output = getFormattedOutput(
+                    new SalesOutputData(salesBatchResult.customersQty, salesBatchResult.salesmanQty, salesBatchResult.mostExpensiveSale, salesBatchResult.worstSalesman));
+            printWriter.print(output);
+        }
+    }
+
+    public String getFormattedOutput(SalesOutputData salesOutputData) {
         String outputTpl = """
                 Clientes: %s
                 Vendedores: %s
                 Venda mais cara: %s
                 Pior vendedor: %s
                 """;
-        return String.format(outputTpl, numberOfCustomers, numberOfSalesman, mostExpensiveSale , worstSalesman);
+        return String.format(outputTpl, salesOutputData.getNumberOfCustomers(), salesOutputData.getNumberOfSalesman(), salesOutputData.getMostExpensiveSale(), salesOutputData.getWorstSalesman());
     }
 
-    private void createDirIfDoesNotExist(String outputFileDir) {
+    private void createDirIfDoesNotExist(String outputFileDir) throws DirectoryCreationException {
         File output = new File(outputFileDir);
         if (! output.exists()) {
             if(! output.mkdirs()) {
-                throw new ProcessingException("Error creating directories");
+                LOGGER.error("Error creating directories " + outputFileDir);
+                throw new DirectoryCreationException("Error creating directories " + outputFileDir);
             }
         }
     }
