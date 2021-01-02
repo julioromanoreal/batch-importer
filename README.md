@@ -59,6 +59,8 @@ After processing all files within the specified directory, the system must creat
 * ID of the most expensive sale
 * The worst salesman
 
+The name of the output file should end with `.done.dat`
+
 ### Built With
 
 * Java 15
