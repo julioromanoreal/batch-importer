@@ -52,6 +52,13 @@ The first part of each line defines the type of data and each type has a differe
 * `002`: Data from customers as in `002çCNPJçNameçBusiness Area`
 * `003`: Data from sales as in `003çSale IDç[Item ID-Item Quantity-Item Price]çSalesman name`
 
+After processing all files within the specified directory, the system must create a file within the output directory containing the following information:
+
+* Quantity of customers in the files
+* Quantity of salesman in the files
+* ID of the most expensive sale
+* The worst salesman
+
 ### Built With
 
 * Java 15
