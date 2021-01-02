@@ -35,6 +35,23 @@ Program to read .dat files from a specific directory, analyze the files and prod
 
 This is a simple project containing an endpoint that triggers a process that reads .dat files from a specific directory, analyze them and produce a report with specific information.
 
+This is an example of a file to be parsed:
+
+```aidl
+001ç1234567891234çPedroç50000
+001ç3245678865434çPauloç40000.99
+002ç2345675434544345çJose da SilvaçRural
+002ç2345675433444345çEduardo PereiraçRural
+003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çPedro
+003ç08ç[1-34-10,2-33-1.50,3-40-0.10]çPaulo
+```
+
+The first part of each line defines the type of data and each type has a different layout. These are the available options:
+
+* `001`: Data from salesmans as in `001çCPFçNameçSalary`
+* `002`: Data from customers as in `002çCNPJçNameçBusiness Area`
+* `003`: Data from sales as in `003çSale IDç[Item ID-Item Quantity-Item Price]çSalesman name`
+
 ### Built With
 
 * Java 15
